@@ -1,0 +1,697 @@
+openapi: 3.0.0
+info:
+  title: BCBS239 API Specification
+  description: This API allows for programmatic registration for the BCBS 239 program, including registration of reports, key data elements (KDEs), dataflows, and datasets.
+  version: 1.0.0
+
+servers:
+  - url: http://api.example.com/v1  # TODO: This needs to be updated with the real API URL
+    description: Optional server description, e.g. Main (production) server
+  - url: http://staging-api.example.com
+    description: Optional server description, e.g. Internal staging server for testing
+
+paths:
+  # Reports
+  /reports:
+    get:
+      tags:
+        - Reports
+      summary: Returns a list of Reports.
+      operationId: getReports
+      responses:
+        "200":
+          description: A JSON array of reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Report"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags:
+        - Reports
+      summary: Creates a Report.
+      operationId: createReport
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Report"
+      responses:
+        "201":
+          description: Report created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /reports/{reportId}:
+    get:
+      tags: 
+        - Reports
+      summary: Returns a Report.
+      description: Optional extended description in CommonMark or HTML.
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A JSON object of a report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Attribute"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      tags:
+        - Reports
+      summary: Updates a Report.
+      description: Optional extended description in CommonMark or HTML.
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Report"
+      responses:
+        "200":
+          description: Report updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /reports/{reportId}/attributes:
+    get:
+      tags:
+        - Reports
+      summary: Returns report elements (attributes) of a given Report.
+      operationId: getReportAttributes
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A JSON object of attributes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReportElement"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags:
+        - Reports
+      summary: Adds report elements to a Report and allows for designation of Key Data Elements.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  attributeId:
+                    type: string
+                  isKeyDataElement: 
+                    type: boolean
+      responses:
+        "201":
+          description: Attributes added
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReportElement"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"  
+  /reports/{reportId}/lineage:
+    get:
+      tags:
+        - Reports
+        - Lineage
+      summary: Returns lineage for a given Report.
+      operationId: getReportLineage
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A JSON object of lineage
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReportLineage"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags:
+        - Reports
+        - Lineage
+      summary: Adds lineage to a Report.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportLineage"
+      responses:
+        "201":
+          description: Lineage added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportLineage"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  
+  # Attributes
+  /attributes:
+    post:
+      tags:
+        - Attributes
+      summary: Creates an Attribute.
+      description: Optional extended description in CommonMark or HTML.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Attribute"
+      responses:
+        "201":
+          description: Attribute created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Attribute"
+  /attributes/{attributeId}:
+    get:
+      tags:
+        - Attributes
+      summary: Returns an Attribute.
+      description: Optional extended description in CommonMark or HTML.
+      parameters:
+        - name: attribute_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A JSON object of an Attribute
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Attribute"
+
+  # Datasets
+  /datasets:
+    get:
+      tags:
+        - Datasets
+      summary: Returns a list of Datasets.
+      operationId: getDatasets
+      responses:
+        "200":
+          description: A JSON array of datasets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dataset"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      tags:
+        - Datasets
+      summary: Creates a Dataflow.
+      description: Optional extended description in CommonMark or HTML.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Dataflow"
+      responses:
+        "201":
+          description: Dataflow created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dataflow"
+  /datasets/{datasetId}:
+    get:
+      tags:
+        - Datasets
+      summary: Returns a Dataset.
+      description: Optional extended description in CommonMark or HTML.
+      parameters:
+        - name: dataset_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A JSON object of a Dataset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dataset"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      tags:
+        - Datasets
+      summary: Updates a Dataset.
+      description: Optional extended description in CommonMark or HTML.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Dataset"
+      responses:
+        "201":
+          description: Dataset created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dataset"
+    
+  # Dataflows
+  /dataflows:
+    get:
+      tags:
+        - Dataflows
+      summary: Returns a list of Dataflows.
+      operationId: getDataflows
+      responses:
+        "200":
+          description: A JSON array of dataflows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dataflow"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags:
+        - Dataflows
+      summary: Creates a Dataflow.
+      description: Optional extended description in CommonMark or HTML.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Dataflow"
+      responses:
+        "201":
+          description: Dataflow created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dataflow"
+  /dataflows/{dataflowId}:
+    get:
+      tags:
+        - Dataflows
+      summary: Returns a Dataflow.
+      description: Optional extended description in CommonMark or HTML.
+      parameters:
+        - name: dataflowId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A JSON object of a Dataflow
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dataflow"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      tags:
+        - Dataflows
+      summary: Updates a Dataflow.
+      description: Optional extended description in CommonMark or HTML.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Dataflow"
+      responses:
+        "201":
+          description: Dataflow created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dataflow"
+  /dataflows/{dataflowId}/datasets:
+    get:
+      tags:
+        - Dataflows
+        - Datasets
+      summary: Returns a Dataflow.
+      description: Optional extended description in CommonMark or HTML.
+      parameters:
+        - name: dataflowId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A JSON object of a Dataflow
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dataflow"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+    post:
+      tags:
+        - Dataflows
+        - Datasets
+      summary: Associates a Dataset with a Dataflow.
+      operationId: addDatasetToDataflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  datasetId:
+                    type: string
+      responses:
+        "201":
+          description: Datasets associated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dataflow"
+  /dataflows/{dataflowId}/lineage:
+    get:
+      tags:
+        - Dataflows
+        - Lineage
+      summary: Returns lineage for a given Dataflow.
+      operationId: getDataflowLineage
+      parameters:
+        - name: dataflowId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A JSON object of lineage
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DataflowLineage"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags:
+        - Dataflows
+        - Lineage
+      summary: Associates a downstream dataset to a Dataflow.
+      operationId: getDataflowLineage
+      parameters:
+        - name: dataflowId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A JSON object of lineage
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: "#/components/schemas/DataflowLineage"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  schemas:
+    Application:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [SEAL, UT, IA]  # TODO: This needs to be explicitly defined
+    Attribute:
+      type: object
+      properties:
+        title: 
+          type: string
+        description: 
+          type: string
+        datatype: 
+          type: string
+          enum: [NUMERIC, STRING, BOOLEAN]  # TODO: This needs to be explicitly defined
+        identifier:
+          type: string
+        application:
+          $ref: "#/components/schemas/Application"
+        businessDomain:
+          type: string
+    ReportElement:
+      type: object
+      properties:
+        title: 
+          type: string
+          readOnly: true
+        description: 
+          type: string
+          readOnly: true
+        datatype: 
+          type: string
+          readOnly: true
+          enum: [NUMERIC, STRING, BOOLEAN]  # TODO: This needs to be explicitly defined
+        identifier:
+          type: string
+        application:
+          $ref: "#/components/schemas/Application"
+          readOnly: true
+        businessDomain:
+          type: string
+          readOnly: true
+        isKeyDataElement:
+          type: boolean
+    Dataset:
+      type: object
+      properties:
+        id: 
+          type: string
+          readOnly: true
+        title:
+          type: string
+        application:
+          $ref: "#/components/schemas/Application"
+    Dataflow:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        title:
+          type: string
+        description: 
+          type: string 
+        businessDomain:
+          type: string
+        datasets:
+          type: array
+          readOnly: true
+          items:
+            $ref: "#/components/schemas/Dataset"
+        frequency:
+          type: string  
+          enum: [DAILY, WEEKLY, HOURLY, MONTHLY, ANNUAL]  # TODO: This needs to be explicitly defined
+        application:
+          $ref: "#/components/schemas/Application"
+    Report:
+      type: object
+      properties:
+        reportId:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          example: Report Title
+        description:
+          type: string
+        tier:
+          type: string
+          enum: [TIER_1, TIER_2] # TODO: This needs to be explicitly defined
+        application:
+          $ref: "#/components/schemas/Application"
+        frequency:
+          type: string
+          enum: [DAILY, WEEKLY, HOURLY, MONTHLY, ANNUAL]  # TODO: This needs to be explicitly defined
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+    ReportLineage:
+      type: object
+      properties:
+        upstreamDataflowId:
+          type: string
+    Lineage:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        sourceApplication:
+          $ref: "#/components/schemas/Application"
+        destinationApplication:
+          $ref: "#/components/schemas/Application" 
+    DataflowLineage:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        application:
+          readOnly: true
+          $ref: "#/components/schemas/Application"
+        downstreamDatasets:
+          type: array
+          items:
+            $ref: "#/components/schemas/Dataset"
+
+  responses:
+    NotFoundError:
+      description: Entity not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 404
+              message:
+                type: string
+                example: Requested entity not found
+    BadRequestError:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 400
+              message:
+                type: string
+                example: Bad Request
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 500
+              message:
+                type: string
+                example: Internal Server Error
